@@ -50,8 +50,20 @@ public class IAPhotoManager1 extends JFrame {
 	 * Create the frame.
 	 */
 	
-	public void switchMenu(){
-		
+	public void switchScreen(Screen Newscreen){
+		UserMenu.setVisible(false);
+		Login.setVisible(false);
+		switch (Newscreen){
+			case LOGINSCREEN:{
+				Login.setVisible(true);
+				break;
+			}
+			case MENUSCREEN:{
+				UserMenu.setVisible(true);
+				break;
+			}
+		}
+		currentscreen = Newscreen;
 	}
 	public IAPhotoManager1() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -64,7 +76,6 @@ public class IAPhotoManager1 extends JFrame {
 		Login = new JPanel();
 		contentPane.add(Login, "name_175979140570239");
 		Login.setLayout(null);
-		Login.setVisible(true);
 		
 		Username = new JTextField();
 		Username.setBounds(182, 83, 146, 26);
@@ -100,8 +111,7 @@ public class IAPhotoManager1 extends JFrame {
 				String pword=Password.getText();
 				
 				if(uname.equals("name") && pword.equals("password")){
-					UserMenu.setVisible(true);
-					Login.setVisible(false);
+				switchScreen(Screen.MENUSCREEN);
 				}
 				else{
 					JOptionPane.showMessageDialog(frame, "Invalid username or password");
@@ -136,5 +146,7 @@ public class IAPhotoManager1 extends JFrame {
 		JMenu mnForgotYourPassword = new JMenu("Forgot your password?");
 		menuBar.add(mnForgotYourPassword);
 		panel_2.setVisible(false);
+		
+		switchScreen(Screen.LOGINSCREEN);
 	}
 }
