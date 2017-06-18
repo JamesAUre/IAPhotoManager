@@ -28,8 +28,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import javax.swing.JComboBox;
 import javax.swing.border.EtchedBorder;
+import javax.swing.JList;
+import javax.swing.JTextArea;
 
 public class IAPhotoManager1 extends JFrame {
 
@@ -329,10 +333,27 @@ public class IAPhotoManager1 extends JFrame {
 		label_1.setBounds(15, 86, 145, 99);
 		userMenu.add(label_1);
 		
-		JLabel label_2 = new JLabel("");
-		label_2.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-		label_2.setBounds(187, 63, 216, 122);
-		userMenu.add(label_2);
+		boolean connected = myDatabase.connect();
+		String connectedmessage = "";
+		if(connected == true){
+			connectedmessage = "Connected";
+		}
+		else{
+			connectedmessage = "Not connected";
+		}
+		boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
+		if(addID == true){
+			
+			connectedmessage += "Added";
+		}
+		else{
+			connectedmessage += "Not added";
+		}
+		
+		ArrayList<String> paths = myDatabase.getPhotos();
+		JList list = new JList<String>(paths.toArray(new String[paths.size()]));
+		list.setBounds(203, 84, 184, 101);
+		userMenu.add(list);
 		userMenu.setVisible(false);
 		
 		Options = new JPanel();
@@ -361,22 +382,6 @@ public class IAPhotoManager1 extends JFrame {
 		contentPane.add(Help, "name_626028536091847");
 		Help.setLayout(null);
 		
-		boolean connected = myDatabase.connect();
-		String connectedmessage = "";
-		if(connected == true){
-			connectedmessage = "Connected";
-		}
-		else{
-			connectedmessage = "Not connected";
-		}
-		boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
-		if(addID == true){
-			
-			connectedmessage += "Added";
-		}
-		else{
-			connectedmessage += "Not added";
-		}
 		JLabel lblT = new JLabel(connectedmessage);
 		lblT.setBounds(47, 16, 197, 20);
 		Help.add(lblT);
