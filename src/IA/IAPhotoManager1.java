@@ -71,6 +71,7 @@ public class IAPhotoManager1 extends JFrame {
 	 */
 	DatabaseConnector myDatabase = new DatabaseConnector();
 	
+	
 	public void switchScreen(Screen Newscreen){
 		//UserMenu.setVisible(false);
 		
@@ -367,6 +368,14 @@ public class IAPhotoManager1 extends JFrame {
 		}
 		else{
 			connectedmessage = "Not connected";
+		}
+		boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
+		if(addID == true){
+			
+			connectedmessage += "Added";
+		}
+		else{
+			connectedmessage += "Not added";
 		}
 		JLabel lblT = new JLabel(connectedmessage);
 		lblT.setBounds(47, 16, 197, 20);
