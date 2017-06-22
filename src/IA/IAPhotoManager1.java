@@ -2,6 +2,7 @@ package IA;
 
 //import IA.backup.IAPhotoManager1;
 
+//imports
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -29,14 +30,20 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.swing.JComboBox;
 import javax.swing.border.EtchedBorder;
+
+import com.mysql.jdbc.Statement;
+
 import javax.swing.JList;
 import javax.swing.JTextArea;
 
+//PhotoManager class
 public class IAPhotoManager1 extends JFrame {
 
+	//public variables
 	private JFrame frame = new JFrame();
 	private JPanel contentPane;
 	private JTextField Username;
@@ -53,9 +60,15 @@ public class IAPhotoManager1 extends JFrame {
 	private JTextField txtJamesUre;
 	private JTextField txtPassword;
 	
+	//Need to store login details on database
+	String username = "james";
+	String password = "pass";
+	
 	/**
 	 * Launch the application.
 	 */
+	
+	//Main
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -73,11 +86,13 @@ public class IAPhotoManager1 extends JFrame {
 	/**
 	 * Create the frame.
 	 */
+	
+	//mydatabase = databaseconnector
 	DatabaseConnector myDatabase = new DatabaseConnector();
+	private JTextField textSearch;
 	
-	
+	//Switch panel method
 	public void switchScreen(Screen Newscreen){
-		//UserMenu.setVisible(false);
 		
 		login.setVisible(false);
 		userMenu.setVisible(false);
@@ -115,6 +130,7 @@ public class IAPhotoManager1 extends JFrame {
 		currentscreen = Newscreen;
 	}
 	
+	//****
 	public IAPhotoManager1() throws Exception {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -150,6 +166,7 @@ public class IAPhotoManager1 extends JFrame {
 	            }
 	        );
 		
+		//Help panel
 		JMenuItem mnHelp = new JMenuItem("Help");
 		menuBar.add(mnHelp);
 		mnHelp.addMouseListener(new MouseAdapter() {
@@ -171,7 +188,7 @@ public class IAPhotoManager1 extends JFrame {
 	            }
 	        );
 		
-		
+		//Option panel
 		JMenuItem mnOptions = new JMenuItem("Options");
 		menuBar.add(mnOptions);
 		mnOptions.addMouseListener(new MouseAdapter() {
@@ -193,6 +210,7 @@ public class IAPhotoManager1 extends JFrame {
 	            }
 	        );
 		
+		//Menu panel
 		JMenuItem mnMenu = new JMenuItem("Menu");
 		menuBar.add(mnMenu);
 		mnMenu.addMouseListener(new MouseAdapter() {
@@ -221,7 +239,7 @@ public class IAPhotoManager1 extends JFrame {
 		
 		//Username field
 		Username = new JTextField();
-		Username.setBounds(182, 83, 146, 26);
+		Username.setBounds(182, 70, 146, 26);
 		login.add(Username);
 		Username.setColumns(10);
 		
@@ -234,7 +252,7 @@ public class IAPhotoManager1 extends JFrame {
 					String uname=Username.getText();
 					String pword=Password.getText();
 					
-					if(uname.equals("name") && pword.equals("password")){
+					if(uname.equals(username) && pword.equals(password)){
 					switchScreen(Screen.MENUSCREEN);
 					}
 					else{
@@ -243,24 +261,24 @@ public class IAPhotoManager1 extends JFrame {
 				}
 			}
 		});
-		Password.setBounds(182, 125, 146, 26);
+		Password.setBounds(182, 107, 146, 26);
 		login.add(Password);
 		Password.setColumns(10);
 		
 		//Login page username labels
 		JLabel lblUsername = new JLabel("Username:");
-		lblUsername.setBounds(78, 86, 91, 20);
+		lblUsername.setBounds(78, 73, 91, 20);
 		login.add(lblUsername);
 		
 		//Login page password labels
 		JLabel lblPassword = new JLabel("Password:");
-		lblPassword.setBounds(78, 128, 79, 20);
+		lblPassword.setBounds(78, 110, 79, 20);
 		login.add(lblPassword);
 		
 		//Login page title
 		JLabel lblPhotoManager = new JLabel("Photo Manager");
 		lblPhotoManager.setFont(new Font("Sitka Text", Font.BOLD, 27));
-		lblPhotoManager.setBounds(103, 29, 219, 41);
+		lblPhotoManager.setBounds(102, 16, 219, 41);
 		login.add(lblPhotoManager);
 		
 		//Usermenu panel initialization
@@ -270,14 +288,14 @@ public class IAPhotoManager1 extends JFrame {
 		
 		//Login button
 		JButton btnLogin = new JButton("Login");
-		btnLogin.setBounds(213, 167, 115, 29);
+		btnLogin.setBounds(213, 149, 115, 29);
 		login.add(btnLogin);
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String uname=Username.getText();
 				String pword=Password.getText();
 				
-				if(uname.equals("name") && pword.equals("password")){
+				if(uname.equals(username) && pword.equals(password)){
 				switchScreen(Screen.MENUSCREEN);
 				}
 				else{
@@ -287,7 +305,7 @@ public class IAPhotoManager1 extends JFrame {
 		});
 		
 		JButton btnCancel = new JButton("Cancel");
-		btnCancel.setBounds(78, 167, 115, 29);
+		btnCancel.setBounds(78, 149, 115, 29);
 		login.add(btnCancel);
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -300,7 +318,7 @@ public class IAPhotoManager1 extends JFrame {
 		contentPane.add(userMenu, "name_175982178153740");
 		userMenu.setLayout(null);
 		
-		JLabel lblWelcome = new JLabel("Welcome, James Ure");
+		JLabel lblWelcome = new JLabel("Welcome, " + username);
 		lblWelcome.setBounds(106, 27, 165, 20);
 		userMenu.add(lblWelcome);
 		
@@ -311,6 +329,8 @@ public class IAPhotoManager1 extends JFrame {
 		JLabel lblProfilePic = new JLabel("");
 		lblProfilePic.setBounds(15, 0, 86, 75);
 		userMenu.add(lblProfilePic);
+		
+		//read image
 		Image temp = ImageIO.read(new File("C:\\Users\\James Ure\\Desktop\\photo.jpg"));
 		lblProfilePic.setIcon(new ImageIcon(temp.getScaledInstance(86, 75,1000)));
 		
@@ -325,7 +345,7 @@ public class IAPhotoManager1 extends JFrame {
 		
 		JComboBox sortBox = new JComboBox(optionBox);
 		sortBox.setName("Sort by:");
-		sortBox.setBounds(276, 24, 127, 26);
+		sortBox.setBounds(276, 49, 127, 26);
 		userMenu.add(sortBox);
 		
 		JLabel label_1 = new JLabel("");
@@ -333,7 +353,10 @@ public class IAPhotoManager1 extends JFrame {
 		label_1.setBounds(15, 86, 145, 99);
 		userMenu.add(label_1);
 		
-		boolean connected = myDatabase.connect();
+		//-----------------------------
+		
+		//connect to database
+		boolean connected = myDatabase.connectphotodb();
 		String connectedmessage = "";
 		if(connected == true){
 			connectedmessage = "Connected";
@@ -341,6 +364,19 @@ public class IAPhotoManager1 extends JFrame {
 		else{
 			connectedmessage = "Not connected";
 		}
+		
+		//connecting user to database
+		boolean connecteduser = myDatabase.connectuserdb();
+		String connectedmessageUser;
+		if(connecteduser == true){
+			connectedmessageUser = "ITS Connected";
+		}
+		else{
+			connectedmessageUser = "ITS Not connected";
+		}
+		
+		
+		//adding file to database
 		boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
 		if(addID == true){
 			
@@ -350,11 +386,42 @@ public class IAPhotoManager1 extends JFrame {
 			connectedmessage += "Not added";
 		}
 		
+		boolean addUsername = myDatabase.changeUsername("IT WORKS");
+		if(addID == true){
+			
+			connectedmessageUser += "Added";
+		}
+		else{
+			connectedmessageUser += "Not added";
+		}
+		
+		//Making extended array
 		ArrayList<String> paths = myDatabase.getPhotos();
+		
+		//list is array
 		JList list = new JList<String>(paths.toArray(new String[paths.size()]));
 		list.setBounds(203, 84, 184, 101);
 		userMenu.add(list);
+		
+		
+		//------------------------------
+		
+		
+		
+		textSearch = new JTextField();
+		textSearch.setBounds(276, 10, 127, 26);
+		userMenu.add(textSearch);
+		textSearch.setColumns(10);
 		userMenu.setVisible(false);
+		textSearch.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					String searching = textSearch.getText();
+					myDatabase.searchengine(searching);
+				}
+			}
+		});
 		
 		Options = new JPanel();
 		contentPane.add(Options, "name_281219183087217");
@@ -370,7 +437,7 @@ public class IAPhotoManager1 extends JFrame {
 		Options.add(btnProfileOptions);
 		
 		JButton btnCustomizeMenu = new JButton("Customize menu");
-		btnCustomizeMenu.setBounds(212, 73, 165, 29);
+		btnCustomizeMenu.setBounds(238, 73, 165, 29);
 		Options.add(btnCustomizeMenu);
 		btnCustomizeMenu.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -382,7 +449,7 @@ public class IAPhotoManager1 extends JFrame {
 		contentPane.add(Help, "name_626028536091847");
 		Help.setLayout(null);
 		
-		JLabel lblT = new JLabel(connectedmessage);
+		JLabel lblT = new JLabel(connectedmessageUser);
 		lblT.setBounds(47, 16, 197, 20);
 		Help.add(lblT);
 		
@@ -407,24 +474,58 @@ public class IAPhotoManager1 extends JFrame {
 		JButton btnSetUsername = new JButton("Set username");
 		btnSetUsername.setBounds(223, 19, 141, 29);
 		profileOptions.add(btnSetUsername);
+		btnSetUsername.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				if(username.length()>5){
+					username = txtJamesUre.getText();
+					
+				}
+				else{
+					JOptionPane.showMessageDialog(frame, "Username does not meet validation rules");
+					return;
+				}
+				
+				
+
+			}
+		});
 		
 		JButton btnSetPassword = new JButton("Set password");
 		btnSetPassword.setBounds(227, 58, 137, 29);
 		profileOptions.add(btnSetPassword);
+		btnSetPassword.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(txtPassword.getText().length()>5){
+					password = txtPassword.getText();
+				}
+				else{
+					JOptionPane.showMessageDialog(frame, "Password does not meet validation rules");
+				}
+			}
+		});
 		
 		JLabel lblPassword_1 = new JLabel("Password:");
 		lblPassword_1.setBounds(24, 62, 80, 20);
 		profileOptions.add(lblPassword_1);
 		
 		txtPassword = new JPasswordField();
-		txtPassword.setText("password");
+		String password = "password";
+		txtPassword.setText(password);
 		txtPassword.setBounds(112, 57, 100, 26);
 		profileOptions.add(txtPassword);
 		txtPassword.setColumns(10);
+		
+
+		
+		JLabel label_2 = new JLabel("");
+		label_2.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		label_2.setBounds(74, 100, 131, 85);
+		profileOptions.add(label_2);
 		
 		menuOptions = new JPanel();
 		contentPane.add(menuOptions, "name_628174016463539");
 		
 		switchScreen(Screen.LOGINSCREEN);
 	}
-}
+		}
