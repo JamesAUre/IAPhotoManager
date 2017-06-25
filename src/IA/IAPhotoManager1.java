@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -34,6 +35,8 @@ import java.util.Scanner;
 
 import javax.swing.JComboBox;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import com.mysql.jdbc.Statement;
 
@@ -41,7 +44,8 @@ import javax.swing.JList;
 import javax.swing.JTextArea;
 
 //PhotoManager class
-public class IAPhotoManager1 extends JFrame {
+public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
+	
 
 	//public variables
 	private JFrame frame = new JFrame();
@@ -60,9 +64,15 @@ public class IAPhotoManager1 extends JFrame {
 	private JTextField txtJamesUre;
 	private JTextField txtPassword;
 	
+	
 	//Need to store login details on database
 	String username = "james";
 	String password = "pass";
+	Photo currentphoto = null;
+	ArrayList<Photo> photos = new ArrayList<Photo>();
+	boolean hasselectedphoto = false;
+	
+	JLabel preview = null;
 	
 	/**
 	 * Launch the application.
@@ -349,6 +359,7 @@ public class IAPhotoManager1 extends JFrame {
 		userMenu.add(sortBox);
 		
 		JLabel label_1 = new JLabel("");
+		preview = label_1;
 		label_1.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		label_1.setBounds(15, 86, 145, 99);
 		userMenu.add(label_1);
@@ -396,13 +407,14 @@ public class IAPhotoManager1 extends JFrame {
 		}
 		*/
 		//Making extended array
-		ArrayList<Photo> paths = myDatabase.getPhotos();
+		photos = myDatabase.getPhotos();
 		
 		
 		//list is array
 		JList list = new JList();
 		list.setCellRenderer(new PhotoListRenderer());
-		list.setListData(paths.toArray(new Photo[paths.size()]));
+		list.setListData(photos.toArray(new Photo[photos.size()]));
+		list.addListSelectionListener(this);
 		list.setBounds(203, 84, 184, 101);
 		userMenu.add(list);
 		
@@ -534,4 +546,36 @@ public class IAPhotoManager1 extends JFrame {
 		
 		switchScreen(Screen.LOGINSCREEN);
 	}
+		
+	public void valueChanged(ListSelectionEvent e) {
+        //ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+		JList list = (JList)e.getSource();
+		if(list.getSelectedIndex() == -1){
+			System.out.println("Has no value");
+			hasselectedphoto = false;
 		}
+		else{
+	        currentphoto = (Photo)(list).getSelectedValue();
+	        hasselectedphoto = true;
+		}
+		showpreview();
+ }
+	
+	void showpreview(){
+		if (hasselectedphoto == true){
+			Image temp;
+			try {
+				temp = ImageIO.read(new File(currentphoto.getPath()));
+				preview.setIcon(new ImageIcon(temp.getScaledInstance(86, 75,1000)));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("IMAGE ERROR");
+				e.printStackTrace();
+			}	
+		}
+		else {
+			preview.setIcon(null);
+		}
+		
+	}
+}
