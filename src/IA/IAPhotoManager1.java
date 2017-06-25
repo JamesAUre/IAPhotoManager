@@ -356,7 +356,7 @@ public class IAPhotoManager1 extends JFrame {
 		//-----------------------------
 		
 		//connect to database
-		boolean connected = myDatabase.connectphotodb();
+		boolean connected = myDatabase.connectphotodb("root","1234");
 		String connectedmessage = "";
 		if(connected == true){
 			connectedmessage = "Connected";
@@ -366,7 +366,7 @@ public class IAPhotoManager1 extends JFrame {
 		}
 		
 		//connecting user to database
-		boolean connecteduser = myDatabase.connectuserdb();
+		boolean connecteduser = myDatabase.connectuserdb("root", "1234");
 		String connectedmessageUser;
 		if(connecteduser == true){
 			connectedmessageUser = "ITS Connected";
@@ -374,10 +374,10 @@ public class IAPhotoManager1 extends JFrame {
 		else{
 			connectedmessageUser = "ITS Not connected";
 		}
-		
+		System.out.println(connectedmessageUser);
 		
 		//adding file to database
-		boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
+		/*boolean addID = myDatabase.addFile("C:\\Program Files\\Java\\jre8\\lib\\ext");
 		if(addID == true){
 			
 			connectedmessage += "Added";
@@ -394,12 +394,15 @@ public class IAPhotoManager1 extends JFrame {
 		else{
 			connectedmessageUser += "Not added";
 		}
-		
+		*/
 		//Making extended array
-		ArrayList<String> paths = myDatabase.getPhotos();
+		ArrayList<Photo> paths = myDatabase.getPhotos();
+		
 		
 		//list is array
-		JList list = new JList<String>(paths.toArray(new String[paths.size()]));
+		JList list = new JList();
+		list.setCellRenderer(new PhotoListRenderer());
+		list.setListData(paths.toArray(new Photo[paths.size()]));
 		list.setBounds(203, 84, 184, 101);
 		userMenu.add(list);
 		
@@ -407,7 +410,7 @@ public class IAPhotoManager1 extends JFrame {
 		//------------------------------
 		
 		
-		
+		//Search engine
 		textSearch = new JTextField();
 		textSearch.setBounds(276, 10, 127, 26);
 		userMenu.add(textSearch);
@@ -422,6 +425,9 @@ public class IAPhotoManager1 extends JFrame {
 				}
 			}
 		});
+		
+		System.out.println("Search");
+		myDatabase.searchengine("James");
 		
 		Options = new JPanel();
 		contentPane.add(Options, "name_281219183087217");

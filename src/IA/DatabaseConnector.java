@@ -29,10 +29,11 @@ public class DatabaseConnector {
 	String updateusername = "update " + userdbname + " where 'ID' = " + 1;
 	
 	//photodb
-	boolean connectphotodb(){
+	boolean connectphotodb(String username, String password){
 		try{
-		
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/" + photodbname +"?user=root&password=1234");
+		username = "root";
+				password = "1234";
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/" + photodbname +"?user=" + username + "&password=" + password);
 			insertStatement = conn.prepareStatement(insertstring);
 			viewStatement = conn.prepareStatement(viewstring);
 			return true;
@@ -46,6 +47,7 @@ public class DatabaseConnector {
 		return false;
 	}
 	
+	//Add directory to phototable
 	boolean addFile(String path){
 		try {
 			insertStatement.setString(1, path);
@@ -59,9 +61,10 @@ public class DatabaseConnector {
 		return false;
 	}
 	
-	boolean connectuserdb(){
+	//Connector to userdatabase
+	boolean connectuserdb(String username, String password){
 		try{
-			Connection myconn = DriverManager.getConnection("jdbc:mysql://localhost/" + userdbname + "?user=root&password=1234");
+			Connection myconn = DriverManager.getConnection("jdbc:mysql://localhost/" + userdbname + "?user=" + username + "&password=" + password);
 			insertUsername = conn.prepareStatement(updateusername);
 			return true;
 		}
@@ -74,6 +77,7 @@ public class DatabaseConnector {
 		}
 	}
 	
+	//Insert username into userdatabase
 	boolean changeUsername(String username){
 		try{
 			insertUsername.setString(2,username);
@@ -92,7 +96,7 @@ public class DatabaseConnector {
 		Statement stmt = (Statement) conn.createStatement();
 		
 		//**ERROR HERE
-		String SQL = "Select * FROM phototable WHERE name='" + search + "'";
+		String SQL = "SELECT * FROM phototable WHERE COLUMN LIKE= '%" + search + "%'";
 		
 		//Does not pass this line
 		ResultSet rs = stmt.executeQuery(SQL);
@@ -108,19 +112,23 @@ public class DatabaseConnector {
 	}
 	}
 
-ArrayList<String> getPhotos(){
+//Extending array connection to database
+ArrayList<Photo> getPhotos(){
 	try {
 		ResultSet results =	viewStatement.executeQuery();
-		ArrayList<String> paths= new ArrayList<String>(); 
+		ArrayList<Photo> photos= new ArrayList<Photo>(); 
 		while(results.next()){
-			paths.add(results.getString("path"));
+			String path = results.getString("path");
+			int id = results.getInt("id");
+			String name = results.getString("name");
+			photos.add(new Photo(id, path, name));
 		}
-		return paths;
+		return photos;
 	} catch (SQLException e) {
 		System.out.println("Get photo error");
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-	return new ArrayList<String>();
+	return new ArrayList<Photo>();
 }
 }
