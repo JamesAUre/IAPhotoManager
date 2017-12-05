@@ -17,6 +17,7 @@ public class DatabaseConnector {
 	PreparedStatement insertUsername = null;
 	PreparedStatement deleteStatement = null;
 	PreparedStatement viewStatement = null;
+	PreparedStatement updateStatement = null;
 	Connection conn = null;
 	
 	String photodbname = "phototable";
@@ -24,17 +25,25 @@ public class DatabaseConnector {
 	String viewstring = "select * from " + photodbname + ".photo";
 	String insertuserdetails = "insert into " + photodbname + ".userdetails (password) values (?)";
 	String viewuserdetails = "select * from " + photodbname + ".userdetails";
-	String deletestring = "delete from" + photodbname + ".photo (path) values (?)";
+	String deletestring = "delete from" + photodbname + ".photo (path) values (?)"; 
+	String updatestring = "update " + photodbname + ".photo set name = (?), tags = (?) where id = (?)";
+	
 	//photodb
 	boolean connectphotodb(String username, String password){
 		try{
+		//Username of database
 		username = "root";
+				//Password of database
 				password = "1234";
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/" + photodbname +"?user=" + username + "&password=" + password);
+				//Getting connection
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/" + photodbname +"?user=" + username 
+					+ "&password=" + password);
+			//To modify contents of database
 			insertStatement = conn.prepareStatement(insertstring);
 			viewStatement = conn.prepareStatement(viewstring);
 			insertUsername = conn.prepareStatement(insertuserdetails);
 			deleteStatement = conn.prepareStatement(deletestring);
+			updateStatement = conn.prepareStatement(updatestring);
 			return true;
 		}
 		catch(SQLException ex){
@@ -80,6 +89,30 @@ public class DatabaseConnector {
 		return false;
 	}
 	
+	boolean editPhoto(Photo p) {
+		try {
+			updateStatement.setString(1, p.getName());
+			updateStatement.setString(2, p.getTags());
+			updateStatement.setInt(3, p.getId());
+			//Statement stmt = (Statement) conn.createStatement();
+			System.out.println(updateStatement.toString());
+			
+			updateStatement.executeUpdate();
+			//**ERROR HERE
+			//String updatestring = "update " + photodbname + "set name = '"+p.getName() +"', tags = '"+p.getTags() +"' where id = "+p.getId();
+			//Does not pass this line
+			//System.out.println(updatestring);
+			//ResultSet rs = stmt.executeQuery(updatestring);
+			
+			return true;
+		} catch (SQLException e) {
+			System.out.println("Update file error");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 	boolean deleteFile(String path){
 		try{
 			deleteStatement.setObject(1, path);
@@ -112,17 +145,21 @@ public class DatabaseConnector {
 		Statement stmt = (Statement) conn.createStatement();
 		
 		//**ERROR HERE
-		String SQL = "SELECT * FROM phototable WHERE COLUMN LIKE= '%" + search + "%'";
+		String SQL = "SELECT * FROM photo WHERE NAME LIKE '%" + search + "%' OR PATH LIKE '%" + search + "%' OR TAGS LIKE '%" + search + "%'";
 		
 		//Does not pass this line
 		ResultSet rs = stmt.executeQuery(SQL);
 		
 		while (rs.next()){
-			System.out.println("Directory: " + rs.getString("path"));
+			if(rs.getString("name") != null) {
+				System.out.println("Name: " + rs.getString("name"));
+			}
+			else System.out.println("Name not found! Directory: " + rs.getString("path"));
 		}
 	return true;
 	}
 	catch(Exception e ){
+		System.out.println(e);
 		System.out.println("Search error!");
 		return false;
 	}
@@ -137,7 +174,8 @@ ArrayList<Photo> getPhotos(){
 			String path = results.getString("path");
 			int id = results.getInt("id");
 			String name = results.getString("name");
-			photos.add(new Photo(id, path, name));
+			String tags = results.getString("tags");
+			photos.add(new Photo(id, path, name, tags));
 		}
 		return photos;
 	} catch (SQLException e) {

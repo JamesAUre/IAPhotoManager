@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -33,6 +34,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JComboBox;
@@ -76,6 +78,8 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	private JTextField txtPassword;
 	private JList list;
 	private JScrollPane listScrollPane;
+	
+	List<Photo> currentselectedphotos = new ArrayList<Photo>();
 	
 	//Need to store login details on database
 	String username = "james";
@@ -361,7 +365,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		userMenu.add(lblProfilePic);
 		
 		//read image
-		Image temp = ImageIO.read(new File("C:\\Users\\James Ure\\Desktop\\photo.jpg"));
+		Image temp = ImageIO.read(new File("C:\\Users\\James\\Desktop\\Year 13\\CS\\profilepic.jpg"));
 		lblProfilePic.setIcon(new ImageIcon(temp.getScaledInstance(86, 75,1000)));
 		
 		String optionBox[] = new String[6];
@@ -425,6 +429,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		listScrollPane.setViewportView(list);
 		*/
 		//Putting photos on list*****
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		list.setCellRenderer(new PhotoListRenderer());
 		list.addListSelectionListener(this);
 		refreshphotos();
@@ -432,7 +437,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		//initializing popupMenu for photo options
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setVisible(false);
-		popupMenu.setBounds(0, 0, 69, 37);
+		popupMenu.setBounds(0, 0, 69, 37);//0 0 69 37
 		userMenu.add(popupMenu);
 		
 		JMenuItem mntmAddNewPhoto = new JMenuItem("Add new photo");
@@ -443,6 +448,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	            new ActionListener(){
 	                public void actionPerformed(ActionEvent e)
 	                {
+	                	popupMenu.setVisible(false);
 	                	//calling filenav JFileChooser
 	                	int returnvalue = filenav.showOpenDialog(contentPane);
 	                    //if file chosen
@@ -456,30 +462,87 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	        );
 		
 		
-		JMenuItem mntmDeletePhoto = new JMenuItem("Delete photo");
+
+		
+		
+		/*JMenuItem mntmDeletePhoto = new JMenuItem("Delete photo");
 		popupMenu.add(mntmDeletePhoto);
 		mntmDeletePhoto.addActionListener(
 				new ActionListener(){
 					public void actionPerformed(ActionEvent e){
 						myDatabase.deleteFile(list.get));
-						//Add delete photo option
+						Add delete photo option
 					}
 				}
 				
-				);
+				);*/
 		
 		JMenuItem mntmEditPhoto = new JMenuItem("Edit name");
 		popupMenu.add(mntmEditPhoto);
 		
 		JMenuItem mntmTagPhoto = new JMenuItem("Tag photo");
 		popupMenu.add(mntmTagPhoto);
+		mntmTagPhoto.addActionListener(
+	            new ActionListener(){
+	                public void actionPerformed(ActionEvent e)
+	                {
+	                	popupMenu.setVisible(false);
+	                	String currenttags = "";
+	                	if(currentselectedphotos.size() > 0 && currentselectedphotos.get(0).getTags() != null) {
+	                		currenttags = currentselectedphotos.get(0).getTags(); 
+	                	}
+	                	String tags = (String) JOptionPane.showInputDialog(frame, "tessst", "differenttesst", JOptionPane.PLAIN_MESSAGE, null, null, currenttags);
+	                	System.out.println("gotmsg " + tags);
+	                	for (Photo p: currentselectedphotos) {
+	                		p.setTags(tags);
+	                		myDatabase.editPhoto(p);
+	                	}
+	                	refreshphotos();
+	                }
+	}
+	        );
+		
+		JMenuItem mntmPublishPhoto = new JMenuItem("Publish selected");
+		popupMenu.add(mntmPublishPhoto);
+		mntmPublishPhoto.addActionListener(
+	            new ActionListener(){
+	                public void actionPerformed(ActionEvent e)
+	                {
+	                	popupMenu.setVisible(false);
+	                	//calling filenav JFileChooser
+	                	if(currentselectedphotos.isEmpty()) {
+	                		System.out.println("no photo selected for consolidation");
+	                		return;
+	                	}
+	                	filenav.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	                	int returnvalue = filenav.showOpenDialog(contentPane);
+	                    //if file chosen
+	                	if (returnvalue == JFileChooser.APPROVE_OPTION){
+	                    	//Get path
+	                		
+	                		System.out.println(filenav.getCurrentDirectory().getPath());
+	                		
+	                		boolean consolidatePhotos = FileHelper.consolidatePhotos(currentselectedphotos, filenav.getCurrentDirectory().getAbsolutePath());
+	                    	if(consolidatePhotos == true) {
+	                    		System.out.println("Files moved successfully");
+	                    	}
+	                    	else System.out.println("failed");
+	                    }
+	                	filenav.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	                }
+	                
+	            }
+	        );
 		
 		
-		list.setBounds(203, 84, 184, 101);
+		
+		
+		list.setBounds(203, 84, 184, 101); 
 		JScrollPane listScrollPane = new JScrollPane();
 		listScrollPane.setViewportView(list);
-		userMenu.add(new JScrollPane(list));
-		userMenu.add(list);
+		JScrollPane myscrollpane = new JScrollPane(list);
+		myscrollpane.setBounds(203, 84, 184, 101); 
+		userMenu.add(myscrollpane);
 		
 		//rightclicklistener
 		list.addMouseListener( new MouseAdapter()
@@ -491,9 +554,15 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	            {
 	            	
 	            	//set location on point clicked
-	                popupMenu.setLocation(e.getPoint());
+	                popupMenu.setLocation(MouseInfo.getPointerInfo().getLocation()	                		);
 	                int selectedindex = list.locationToIndex(e.getPoint());
 	                popupMenu.setVisible(true);
+	                
+	                popupMenu.addMouseListener(new MouseAdapter() {
+	                	public void mousePressed(MouseEvent e) {
+	                		popupMenu.setVisible(false);
+	                	}
+	                });
 	                
 	                //checks which row selected
 	                System.out.println("You've selected row: " + selectedindex);   
@@ -501,6 +570,12 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	        }
 	     });
 		
+		userMenu.addMouseMotionListener(new MouseAdapter() {
+            public void mouseMoved(MouseEvent e) {
+            	popupMenu.setVisible(false);
+            }
+        });    
+	                
 		//Search engine
 		textSearch = new JTextField();
 		textSearch.setBounds(276, 10, 127, 26);
@@ -511,6 +586,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					System.out.println("Searching..");
 					String searching = textSearch.getText();
 					myDatabase.searchengine(searching);
 				}
@@ -619,11 +695,31 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
         //ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 		JList list = (JList)e.getSource();
+		
+		//UPDATEDFORPHOTOS
+		// incase this code doesn't work - list.getSelectedValues();
+		currentselectedphotos.clear();
+		for(Object o : list.getSelectedValuesList()) {
+			currentselectedphotos.add((Photo) o);
+		}
+		//If user has not selected a directory
+		if (currentselectedphotos.size() == 0) {
+			System.out.println("Has no value");
+			hasselectedphoto = false;
+		}
+		//If they have selected a directory
+		else {
+			currentphoto = currentselectedphotos.get(0);
+			hasselectedphoto = true;
+		}
+		
+		//If the list value errors/not selected
 		if(list.getSelectedIndex() == -1){
 			System.out.println("Has no value");
 			hasselectedphoto = false;
 		}
 		else{
+			//
 	        currentphoto = (Photo)(list).getSelectedValue();
 	        hasselectedphoto = true;
 		}
@@ -656,6 +752,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		photos = myDatabase.getPhotos();
 		list.setListData(photos.toArray(new Photo[photos.size()]));
 	}
+	
 	
 	//Method calling popupmenu (menu photo options)
 	private static void addPopup(Component component, final JPopupMenu popup) {
