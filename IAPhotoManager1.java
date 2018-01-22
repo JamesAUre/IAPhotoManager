@@ -34,6 +34,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -59,6 +60,13 @@ import javax.swing.JScrollBar;
 //PhotoManager class
 public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	
+	public enum sortmode{
+		defaultsort, alphabeticalsort, tagsort
+	};
+	
+	public sortmode currentsortmode = sortmode.defaultsort;
+	
+	User currentuser = new User();
 
 	//public variables
 	private JFrame frame = new JFrame();
@@ -67,12 +75,10 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	private JTextField Password;
 	private JPanel login;
 	private JPanel userMenu;
-	public enum Screen { LOGINSCREEN, MENUSCREEN, OPTIONSCREEN, HELPSCREEN, PROFILEOPSCREEN, MENUOPSCREEN };
+	public enum Screen { LOGINSCREEN, MENUSCREEN, HELPSCREEN, PROFILEOPSCREEN};
 	private Screen currentscreen;
 	private static JMenuBar menuBar;
-	private JPanel Options;
 	private JPanel profileOptions;
-	private JPanel menuOptions;
 	private JPanel Help;
 	private JTextField txtJamesUre;
 	private JTextField txtPassword;
@@ -82,8 +88,6 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	List<Photo> currentselectedphotos = new ArrayList<Photo>();
 	
 	//Need to store login details on database
-	String username = "james";
-	String password = "pass";
 	
 	//for identifying which photo is being selected
 	Photo currentphoto = null;
@@ -130,10 +134,8 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		
 		login.setVisible(false);
 		userMenu.setVisible(false);
-		Options.setVisible(false);
 		Help.setVisible(false);
 		profileOptions.setVisible(false);
-		menuOptions.setVisible(false);
 		switch (Newscreen){
 			case LOGINSCREEN:{
 				login.setVisible(true);
@@ -144,20 +146,12 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 				menuBar.setVisible(true);
 				break;
 			}
-			case OPTIONSCREEN:{
-				Options.setVisible(true);
-				break;
-			}
 			case HELPSCREEN:{
 				Help.setVisible(true);
 				break;
 			}
 			case PROFILEOPSCREEN:{
 				profileOptions.setVisible(true);
-				break;
-			}
-			case MENUOPSCREEN:{
-				menuOptions.setVisible(true);
 				break;
 			}
 		}
@@ -239,7 +233,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	            new ActionListener(){
 	                public void actionPerformed(ActionEvent e)
 	                {
-	                    switchScreen(Screen.OPTIONSCREEN);
+	                    switchScreen(Screen.PROFILEOPSCREEN);
 	                }
 	            }
 	        );
@@ -283,15 +277,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-					String uname=Username.getText();
-					String pword=Password.getText();
-					
-					if(uname.equals(username) && pword.equals(password)){
-					switchScreen(Screen.MENUSCREEN);
-					}
-					else{
-						JOptionPane.showMessageDialog(frame, "Invalid username or password");
-					}
+					attemptLogin();
 				}
 			}
 		});
@@ -326,15 +312,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		login.add(btnLogin);
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String uname=Username.getText();
-				String pword=Password.getText();
-				
-				if(uname.equals(username) && pword.equals(password)){
-				switchScreen(Screen.MENUSCREEN);
-				}
-				else{
-					JOptionPane.showMessageDialog(frame, "Invalid username or password");
-				}
+				attemptLogin();
 			}
 		});
 		
@@ -352,35 +330,42 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		contentPane.add(userMenu, "name_175982178153740");
 		userMenu.setLayout(null);
 		
-		JLabel lblWelcome = new JLabel("Welcome, " + username);
-		lblWelcome.setBounds(106, 27, 165, 20);
-		userMenu.add(lblWelcome);
-		
 		JLabel label = new JLabel("");
 		label.setBounds(22, 16, 69, 20);
 		userMenu.add(label);
 		
-		JLabel lblProfilePic = new JLabel("");
-		lblProfilePic.setBounds(15, 0, 86, 75);
-		userMenu.add(lblProfilePic);
-		
-		//read image
-		Image temp = ImageIO.read(new File("C:\\Users\\James\\Desktop\\Year 13\\CS\\profilepic.jpg"));
-		lblProfilePic.setIcon(new ImageIcon(temp.getScaledInstance(86, 75,1000)));
 		
 		String optionBox[] = new String[6];
 		
 		optionBox[0] = "Sort by:";
 		optionBox[1] = "Alphabetical order";
-		optionBox[2] = "Date";
-		optionBox[3] = "Location";
-		optionBox[4] = "Event";
-		optionBox[5] = "Tagged";
+		optionBox[2] = "Tagged";
 		
 		JComboBox sortBox = new JComboBox(optionBox);
 		sortBox.setName("Sort by:");
 		sortBox.setBounds(276, 49, 127, 26);
 		userMenu.add(sortBox);
+		sortBox.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						int s = sortBox.getSelectedIndex();
+						switch(s) {
+						case 0: {
+							currentsortmode = sortmode.defaultsort;
+							break;
+						}
+						case 1: {
+							currentsortmode = sortmode.alphabeticalsort;
+							break;
+						}
+						case 2: {
+							currentsortmode = sortmode.tagsort;
+							break;
+						}
+						}
+						refreshphotos();
+					}
+				});
 		
 		JLabel label_1 = new JLabel("");
 		preview = label_1;
@@ -461,9 +446,8 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	            }
 	        );
 		
-		
 
-		
+
 		
 		/*JMenuItem mntmDeletePhoto = new JMenuItem("Delete photo");
 		popupMenu.add(mntmDeletePhoto);
@@ -477,9 +461,16 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 				
 				);*/
 		
-		JMenuItem mntmEditPhoto = new JMenuItem("Edit name");
-		popupMenu.add(mntmEditPhoto);
-		
+		JMenuItem mntmDeletePhoto = new JMenuItem("Delete photo");
+		popupMenu.add(mntmDeletePhoto);
+		mntmDeletePhoto.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						popupMenu.setVisible(false);
+						myDatabase.deletePhoto(currentphoto);
+						refreshphotos();
+					}
+				});
 		JMenuItem mntmTagPhoto = new JMenuItem("Tag photo");
 		popupMenu.add(mntmTagPhoto);
 		mntmTagPhoto.addActionListener(
@@ -491,7 +482,7 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	                	if(currentselectedphotos.size() > 0 && currentselectedphotos.get(0).getTags() != null) {
 	                		currenttags = currentselectedphotos.get(0).getTags(); 
 	                	}
-	                	String tags = (String) JOptionPane.showInputDialog(frame, "tessst", "differenttesst", JOptionPane.PLAIN_MESSAGE, null, null, currenttags);
+	                	String tags = (String) JOptionPane.showInputDialog(frame, "Tagged:", "Tag", JOptionPane.PLAIN_MESSAGE, null, null, currenttags);
 	                	System.out.println("gotmsg " + tags);
 	                	for (Photo p: currentselectedphotos) {
 	                		p.setTags(tags);
@@ -501,7 +492,30 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	                }
 	}
 	        );
-		
+	
+		JMenuItem mntmNamePhoto = new JMenuItem("Name photo");
+		popupMenu.add(mntmNamePhoto);
+		mntmNamePhoto.addActionListener(
+	            new ActionListener(){
+	                public void actionPerformed(ActionEvent e)
+	                {
+	                	popupMenu.setVisible(false);
+	                	String currentname = "";
+	                	if(currentselectedphotos.size() > 0 && currentselectedphotos.get(0).getName() != null) {
+	                		currentname = currentselectedphotos.get(0).getName(); 
+	                	}
+	                	String name = (String) JOptionPane.showInputDialog(frame, "Name:", "Name photo", JOptionPane.PLAIN_MESSAGE, null, null, currentname);
+	                	System.out.println("gotmsg " + name);
+	                	for (Photo p: currentselectedphotos) {
+	                		p.setName(name);
+	                		myDatabase.editPhoto(p);
+	                		break;
+	                	}
+	                	refreshphotos();
+	                }
+	}
+	        );
+	
 		JMenuItem mntmPublishPhoto = new JMenuItem("Publish selected");
 		popupMenu.add(mntmPublishPhoto);
 		mntmPublishPhoto.addActionListener(
@@ -596,28 +610,6 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		System.out.println("Search");
 		myDatabase.searchengine("James");
 		
-		Options = new JPanel();
-		contentPane.add(Options, "name_281219183087217");
-		Options.setLayout(null);
-		
-		JButton btnProfileOptions = new JButton("Profile options");
-		btnProfileOptions.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				switchScreen(Screen.PROFILEOPSCREEN);
-			}
-		});
-		btnProfileOptions.setBounds(15, 73, 165, 29);
-		Options.add(btnProfileOptions);
-		
-		JButton btnCustomizeMenu = new JButton("Customize menu");
-		btnCustomizeMenu.setBounds(238, 73, 165, 29);
-		Options.add(btnCustomizeMenu);
-		btnCustomizeMenu.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				switchScreen(Screen.MENUOPSCREEN);
-			}
-		});
-		
 		Help = new JPanel();
 		contentPane.add(Help, "name_626028536091847");
 		Help.setLayout(null);
@@ -629,13 +621,26 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		JButton btnChangeProfilePic = new JButton("Change profile pic");
 		btnChangeProfilePic.setBounds(220, 105, 177, 29);
 		profileOptions.add(btnChangeProfilePic);
-		
+		btnChangeProfilePic.addActionListener(
+	            new ActionListener(){
+	                public void actionPerformed(ActionEvent e)
+	                {
+	                	int returnvalue = filenav.showOpenDialog(contentPane);
+	                    //if file chosen
+	                	if (returnvalue == JFileChooser.APPROVE_OPTION){
+	                    	//Get path
+	                		currentuser.setProfilepic(filenav.getSelectedFile().getAbsolutePath());
+	                		myDatabase.editUser(currentuser);
+	                		Image temp;
+	                    }
+	                    }
+	           }  
+	        );
 		JLabel lblUsername_1 = new JLabel("Username:");
 		lblUsername_1.setBounds(24, 21, 91, 20);
 		profileOptions.add(lblUsername_1);
 		
 		txtJamesUre = new JTextField();
-		txtJamesUre.setText("name");
 		txtJamesUre.setBounds(112, 19, 100, 26);
 		profileOptions.add(txtJamesUre);
 		txtJamesUre.setColumns(10);
@@ -647,10 +652,11 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 	            new ActionListener(){
 	                public void actionPerformed(ActionEvent e)
 	                {
-	                	myDatabase.addUsername(txtJamesUre.getText());
+	                	currentuser.setUsername(txtJamesUre.getText());
+	                	
+	                	myDatabase.editUser(currentuser);
 	                    }
-	                }
-	            
+	           }  
 	        );
 		
 		JButton btnSetPassword = new JButton("Set password");
@@ -659,7 +665,9 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		btnSetPassword.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if(txtPassword.getText().length()>5){
-					password = txtPassword.getText();
+					currentuser.setPassword(txtPassword.getText());
+                	
+                	myDatabase.editUser(currentuser);
 				}
 				else{
 					JOptionPane.showMessageDialog(frame, "Password does not meet validation rules");
@@ -672,21 +680,9 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		profileOptions.add(lblPassword_1);
 		
 		txtPassword = new JPasswordField();
-		String password = "password";
-		txtPassword.setText(password);
 		txtPassword.setBounds(112, 57, 100, 26);
 		profileOptions.add(txtPassword);
 		txtPassword.setColumns(10);
-		
-
-		
-		JLabel label_2 = new JLabel("");
-		label_2.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-		label_2.setBounds(74, 100, 131, 85);
-		profileOptions.add(label_2);
-		
-		menuOptions = new JPanel();
-		contentPane.add(menuOptions, "name_628174016463539");
 		
 		switchScreen(Screen.LOGINSCREEN);
 	}
@@ -746,11 +742,46 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 		}
 		
 	}
-	
+	class sortbyname implements Comparator<Photo>{
+
+		@Override
+		public int compare(Photo arg0, Photo arg1) {
+			// TODO Auto-generated method stub
+			return arg0.name.compareTo(arg1.name);
+		}
+		
+	}
+	class sortbytag implements Comparator<Photo>{
+
+		@Override
+		public int compare(Photo arg0, Photo arg1) {
+			// TODO Auto-generated method stub
+			return arg0.tags.compareTo(arg1.tags);
+		}
+		
+	}
 	//Replenishes JList with database
 	private void refreshphotos(){
 		photos = myDatabase.getPhotos();
+		switch (currentsortmode) {
+		
+		case tagsort: {
+			photos.sort(new sortbytag());
+			break;
+		}
+		case alphabeticalsort: {
+			photos.sort(new sortbyname());
+			break;
+		}
+		case defaultsort:
+		default: {
+			break;
+		}
+		
+		}
+		
 		list.setListData(photos.toArray(new Photo[photos.size()]));
+		
 	}
 	
 	
@@ -776,5 +807,47 @@ public class IAPhotoManager1 extends JFrame implements ListSelectionListener {
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 	});
+	}
+	
+	
+	private void attemptLogin(){
+		String uname=Username.getText();
+		String pword=Password.getText();
+		currentuser = myDatabase.userLogin(uname,pword);
+		if(currentuser != null){
+			JLabel lblWelcome = new JLabel("Welcome, " + currentuser.getUsername());
+			lblWelcome.setBounds(106, 27, 165, 20);
+			userMenu.add(lblWelcome);
+			
+			JLabel lblProfilePic = new JLabel("");
+			lblProfilePic.setBounds(15, 0, 86, 75);
+			userMenu.add(lblProfilePic);
+			
+			JLabel label_2 = new JLabel("");
+			label_2.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+			label_2.setBounds(90, 100, 120, 100);
+			profileOptions.add(label_2);
+			
+			
+			txtJamesUre.setText(currentuser.getUsername());
+			txtPassword.setText(currentuser.getPassword());
+			
+			//read image
+			try {
+				Image temp = ImageIO.read(new File(currentuser.getProfilepic()));
+				lblProfilePic.setIcon(new ImageIcon(temp.getScaledInstance(86, 75,1000)));
+				label_2.setIcon(new ImageIcon(temp.getScaledInstance(120, 100,1000)));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			
+			switchScreen(Screen.MENUSCREEN);
+		}
+		else{
+			JOptionPane.showMessageDialog(frame, "Invalid username or password");
+			
+		}
 	}
 }

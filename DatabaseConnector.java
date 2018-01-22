@@ -18,6 +18,8 @@ public class DatabaseConnector {
 	PreparedStatement deleteStatement = null;
 	PreparedStatement viewStatement = null;
 	PreparedStatement updateStatement = null;
+	PreparedStatement loginStatement = null;
+	PreparedStatement UpdateUserStatement = null;
 	Connection conn = null;
 	
 	String photodbname = "phototable";
@@ -25,8 +27,10 @@ public class DatabaseConnector {
 	String viewstring = "select * from " + photodbname + ".photo";
 	String insertuserdetails = "insert into " + photodbname + ".userdetails (password) values (?)";
 	String viewuserdetails = "select * from " + photodbname + ".userdetails";
-	String deletestring = "delete from" + photodbname + ".photo (path) values (?)"; 
+	String deletestring = "DELETE FROM " + photodbname + ".photo WHERE id = (?)"; 
 	String updatestring = "update " + photodbname + ".photo set name = (?), tags = (?) where id = (?)";
+	String loginstring = "select * from " + photodbname + ".userdetails WHERE username = (?) AND password = (?)";
+	String updateuserdetails = "update " + photodbname + ".userdetails set password = (?), username = (?), profilepic = (?) where iduserdetails = (?)";
 	
 	//photodb
 	boolean connectphotodb(String username, String password){
@@ -44,6 +48,8 @@ public class DatabaseConnector {
 			insertUsername = conn.prepareStatement(insertuserdetails);
 			deleteStatement = conn.prepareStatement(deletestring);
 			updateStatement = conn.prepareStatement(updatestring);
+			loginStatement = conn.prepareStatement(loginstring);
+			UpdateUserStatement = conn.prepareStatement(updateuserdetails);
 			return true;
 		}
 		catch(SQLException ex){
@@ -54,26 +60,6 @@ public class DatabaseConnector {
 		} 
 		return false;
 	}
-	
-	boolean connectusertable(String username, String password){
-		try{
-		username = "root";
-				password = "1234";
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/" + photodbname +"?user=" + username + "&password=" + password);
-			insertStatement = conn.prepareStatement(insertuserdetails);
-			viewStatement = conn.prepareStatement(viewuserdetails);
-			return true;
-		}
-		catch(SQLException ex){
-			System.out.println("Connection error");
-			System.out.println("SQL Exception: " + ex.getMessage());
-			System.out.println("SQLState" + ex.getSQLState());
-			System.out.println("VendorError: " + ex.getErrorCode());
-		} 
-		return false;
-	}
-	
-	
 	
 	//Add directory to phototable
 	boolean addFile(String path){
@@ -89,6 +75,16 @@ public class DatabaseConnector {
 		return false;
 	}
 	
+	boolean deletePhoto(Photo p) {
+		try{
+			deleteStatement.setInt(1, p.getId());
+			deleteStatement.executeUpdate();
+		}catch(SQLException e) {
+			System.out.println("Delete file error!");
+			e.printStackTrace();
+		}
+		return true;
+	}
 	boolean editPhoto(Photo p) {
 		try {
 			updateStatement.setString(1, p.getName());
@@ -113,22 +109,43 @@ public class DatabaseConnector {
 		return false;
 	}
 	
-	boolean deleteFile(String path){
-		try{
-			deleteStatement.setObject(1, path);
-			deleteStatement.execute();
+	boolean editUser(User u) {
+		try {
+			UpdateUserStatement.setString(1, u.getPassword());
+			UpdateUserStatement.setString(2, u.getUsername());
+			UpdateUserStatement.setString(3, u.getProfilepic());
+			UpdateUserStatement.setInt(4, u.getId());
+			//Statement stmt = (Statement) conn.createStatement();
+			
+			UpdateUserStatement.executeUpdate();
+			
 			return true;
-		}
-		catch(SQLException e){
-			System.out.println("Delete file error");
+		} catch (SQLException e) {
+			System.out.println("Update user details error");
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
 	}
 	
+	User userLogin(String username, String password) {
+		try {
+			loginStatement.setString(1,username);
+			loginStatement.setString(2, password);
+			ResultSet results =	loginStatement.executeQuery();
+			while(results.next()){
+				String profilepic = results.getString("profilepic");
+				int id = results.getInt("iduserdetails");
+			return new User(id, profilepic, username, password);
+			}
+		}catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	boolean addUsername(String username){
 		try {
-			insertUsername.setString(1, username);
+			insertUsername.setInt(1, 0);
 			insertUsername.execute();
 			return true;
 		} catch (SQLException e) {
